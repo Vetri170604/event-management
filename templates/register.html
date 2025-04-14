@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>User Registration</h2>
+
+<!-- ✅ Success Message (only shows if user registered successfully) -->
+{% if success_message %}
+    <div class="success-message">
+        {{ success_message }}
+    </div>
+{% endif %}
+
+<!-- ✅ Registration Form -->
+<form method="POST">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+
+    <label>Password:</label>
+    <input type="password" name="password" required>
+
+    <button type="submit">Register</button>
+</form>
+{% endblock %}

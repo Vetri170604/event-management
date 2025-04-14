@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Create New Event</h2>
+<form method="post">
+
+    <input type="text" name="name" placeholder="Event Name" required><br>
+
+<input type="text" name="date" id="event-date" placeholder="Select a date" required>
+
+
+<br>
+
+        <input type="text" name="time" placeholder="e.g. 10:00 AM - 8:00 PM" required><br>
+        <label for="location">Location (District)</label>
+<select name="location" required>
+    <option value="">Select District</option>
+    <option value="Chennai">Chennai</option>
+    <option value="Coimbatore">Coimbatore</option>
+    <option value="Madurai">Madurai</option>
+    <option value="Tiruchirappalli">Tiruchirappalli</option>
+    <option value="Salem">Salem</option>
+    <option value="Tirunelveli">Tirunelveli</option>
+    <option value="Erode">Erode</option>
+    <option value="Vellore">Vellore</option>
+    <option value="Thanjavur">Thanjavur</option>
+    <option value="Thoothukudi">Thoothukudi</option>
+    <option value="Thiruvannamalai">Thiruvannamalai</option>
+    <!-- You can add more districts as needed -->
+   </select><br>
+
+        <input type="text" name="type" placeholder="e.g. Cultural Festival" required>
+
+ 
+        <input type="text" name="contact" placeholder="Phone / Email / Website" required>
+
+
+    <textarea name="description" placeholder="Event Description" required></textarea><br>
+    <button type="submit">Create Event</button>
+</form>
+{% endblock %}
+

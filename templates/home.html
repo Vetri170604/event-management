@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Management System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 40px auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .event-card h2 {
+            margin: 0 0 10px;
+            font-size: 22px;
+            color: #2c3e50;
+        }
+
+        .event-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .cancel-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .cancel-button:hover {
+            color: #c0392b;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 10px;
+            color: green;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upcoming Events</h1>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="message">
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <div class="event-grid">
+            {% for event in events %}
+            <div class="event-card">
+                <h2>{{ event.name }}</h2>
+                <p><strong>Date:</strong> {{ event.date }}</p>
+                <p><strong>Location:</strong> {{ event.location }}</p>
+                <p>{{ event.description }}</p>
+
+                {% if session.get('user_id') %}
+                <form action="{{ url_for('cancel_event', event_id=event.id) }}" method="POST">
+                    <button class="cancel-button" title="Cancel Event" onclick="return confirm('Are you sure you want to cancel this event?');">❌</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>

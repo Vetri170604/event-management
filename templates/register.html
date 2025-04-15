@@ -1,23 +1,184 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-{% block content %}
-<h2>User Registration</h2>
+    <style>
+        :root {
+            --bg-light: #f5f7fa;
+            --bg-dark: #1e1e2f;
+            --primary-light: #4a90e2;
+            --primary-dark: #6c63ff;
+            --text-light: #333;
+            --text-dark: #f5f5f5;
+        }
 
-<!-- ✅ Success Message (only shows if user registered successfully) -->
-{% if success_message %}
-    <div class="success-message">
-        {{ success_message }}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: all 0.5s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .register-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 90%;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        body.dark-mode .register-container {
+            background: #2b2b3c;
+        }
+
+        .register-container h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .register-container h2 {
+            color: var(--primary-dark);
+        }
+
+        .register-container label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .register-container input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .register-container input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+        }
+
+        body.dark-mode .register-container input {
+            background-color: #444455;
+            color: #fff;
+            border-color: #555;
+        }
+
+        .register-container button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            background-color: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .register-container button:hover {
+            background-color: #357ABD;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px 16px;
+            border-left: 6px solid #28a745;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-light);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #357ABD;
+        }
+
+        @media (max-width: 600px) {
+            .register-container {
+                padding: 1.5rem;
+            }
+
+            .register-container h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Mode</button>
+
+    <div class="register-container">
+        <h2>User Registration</h2>
+
+        <!-- ✅ Success Message (example) -->
+        <!-- Uncomment this for testing -->
+        <!-- <div class="success-message">Registration successful!</div> -->
+
+        <!-- ✅ Registration Form -->
+        <form method="POST">
+            <label>Email:</label>
+            <input type="email" name="email" placeholder="Enter your email" required>
+
+            <label>Password:</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+
+            <button type="submit">Register</button>
+        </form>
     </div>
-{% endif %}
 
-<!-- ✅ Registration Form -->
-<form method="POST">
-    <label>Email:</label>
-    <input type="email" name="email" required>
-
-    <label>Password:</label>
-    <input type="password" name="password" required>
-
-    <button type="submit">Register</button>
-</form>
-{% endblock %}
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+    </script>
+</body>
+</html>

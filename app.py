@@ -2,26 +2,20 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 import smtplib
 from email.message import EmailMessage
-import os
 
-# ====================
-# App Configuration
-# ====================
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-# SQLite DB Config
+# SQLite DB setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Email Configuration
-OFFICIAL_EMAIL = "vetrikumar6380268095@gmail.com"       # Replace with your Gmail
-OFFICIAL_PASSWORD = "gbbzzxlspddzqyya"                # Use Gmail App Password
+# Email Setup
+OFFICIAL_EMAIL = "vetrikumar6380268095@gmail.com"
+OFFICIAL_PASSWORD = "gbbzzxlspddzqyya"
 
-# ====================
-# Database Models
-# ====================
+# ----------------- MODELS -----------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -34,71 +28,27 @@ class Event(db.Model):
     location = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
-# ====================
-# Email Helpers
-# ====================
-def send_registration_email(user_email):
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(OFFICIAL_EMAIL, OFFICIAL_PASSWORD)
-        subject = "Event Registration Successful"
-        body = "✅ You have successfully registered for the Event Management System."
-        email_message = f"Subject: {subject}\n\n{body}"
-        server.sendmail(OFFICIAL_EMAIL, user_email, email_message)
-        server.quit()
-    except Exception as e:
-        print("Email to user failed:", e)
-
-def send_registration_notice_to_admin(user_email):
+# ---------------- EMAIL FUNCTIONS ----------------
+def send_email(subject, content, recipient):
     try:
         msg = EmailMessage()
-        msg['Subject'] = 'New Event Registration'
+        msg['Subject'] = subject
         msg['From'] = OFFICIAL_EMAIL
-        msg['To'] = OFFICIAL_EMAIL
-        msg.set_content(f"User with email {user_email} has registered.")
+        msg['To'] = recipient
+        msg.set_content(content)
+
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(OFFICIAL_EMAIL, OFFICIAL_PASSWORD)
             smtp.send_message(msg)
     except Exception as e:
-        print("Admin notification failed:", e)
+        print("Email sending failed:", e)
 
-def send_event_creation_email(event_name):
-    try:
-        msg = EmailMessage()
-        msg['Subject'] = 'New Event Created'
-        msg['From'] = OFFICIAL_EMAIL
-        msg['To'] = OFFICIAL_EMAIL
-        msg.set_content(f"A new event '{event_name}' has been created.")
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(OFFICIAL_EMAIL, OFFICIAL_PASSWORD)
-            smtp.send_message(msg)
-    except Exception as e:
-        print("Failed to send creation email:", e)
+# ---------------- ROUTES ----------------
 
-def send_event_cancellation_email(event_name):
-    try:
-        msg = EmailMessage()
-        msg['Subject'] = 'Event Cancelled'
-        msg['From'] = OFFICIAL_EMAIL
-        msg['To'] = OFFICIAL_EMAIL
-        msg.set_content(f"The event '{event_name}' has been cancelled.")
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(OFFICIAL_EMAIL, OFFICIAL_PASSWORD)
-            smtp.send_message(msg)
-    except Exception as e:
-        print("Failed to send cancellation email:", e)
-
-# ====================
-# Routes
-# ====================
-
-# Dashboard (First Page After Login)
 @app.route('/')
 def dashboard():
     return render_template('dashboard.html')
 
-# Home shows Upcoming Events
 @app.route('/home')
 def home():
     events = Event.query.all()
@@ -108,25 +58,35 @@ def home():
 def about():
     return render_template("about.html")
 
+@app.route('/start-create-event')
+def start_create_event():
+    # Always start from registration if not logged in
+    if 'user_id' not in session:
+        session['next'] = 'create_event'
+        return redirect(url_for('register'))
+    return redirect(url_for('create_event'))
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    message = ""
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        user_exists = User.query.filter_by(email=email).first()
-        if user_exists:
-            flash("⚠️ Email already registered.")
-            return redirect(url_for('register'))
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("⚠️ Email already registered. Please login.")
+            return redirect(url_for('login'))
 
         new_user = User(email=email, password=password)
         db.session.add(new_user)
         db.session.commit()
-        send_registration_email(email)
-        send_registration_notice_to_admin(email)
-        message = f"✅ Registered successfully! Confirmation sent to {email}"
-        return render_template("register.html", message=message)
-    return render_template("register.html", message=message)
+
+        send_email("Registration Successful", "You have successfully registered!", email)
+        send_email("New User Registered", f"{email} just registered!", OFFICIAL_EMAIL)
+
+        flash("✅ Registered successfully. Please login now.")
+        return redirect(url_for('login'))
+
+    return render_template("register.html")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -134,52 +94,69 @@ def login():
         email = request.form['email']
         password = request.form['password']
         user = User.query.filter_by(email=email, password=password).first()
+
         if user:
             session['user_id'] = user.id
-            flash("✅ Login successful!")
-            return redirect(url_for('dashboard'))
-        flash("❌ Invalid email or password.")
-    return render_template("login.html")
+            session['user_email'] = user.email
+            flash("✅ Logged in successfully!")
 
-@app.route('/events')
-def events_list():
-    events = Event.query.all()
-    return render_template('events.html', events=events)
+            next_page = session.pop('next', 'home')
+            return redirect(url_for(next_page))
+
+        else:
+            flash("❌ Invalid login. Please try again.")
+
+    return render_template("login.html")
 
 @app.route('/create-event', methods=['GET', 'POST'])
 def create_event():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        session['next'] = 'create_event'
+        return redirect(url_for('register'))
+
     if request.method == 'POST':
         name = request.form['name']
         date = request.form['date']
         location = request.form['location']
         description = request.form['description']
-        event = Event(name=name, date=date, location=location, description=description)
-        db.session.add(event)
+
+        new_event = Event(name=name, date=date, location=location, description=description)
+        db.session.add(new_event)
         db.session.commit()
-        send_event_creation_email(name)
-        flash(f"🎉 Event '{name}' created successfully!")
+
+        user_email = session.get('user_email')
+        send_email("Event Created", f"Your event '{name}' has been created.", user_email)
+        send_email("New Event Added", f"User {user_email} created event '{name}'", OFFICIAL_EMAIL)
+
+        flash(f"🎉 Successfully registered your event: {name}")
         return redirect(url_for('home'))
+
     return render_template("create_event.html")
 
 @app.route('/cancel-event/<int:event_id>', methods=['POST'])
 def cancel_event(event_id):
     if 'user_id' not in session:
         abort(403)
+
     event = Event.query.get_or_404(event_id)
+    user_email = session.get('user_email')
+
     db.session.delete(event)
     db.session.commit()
-    send_event_cancellation_email(event.name)
+
+    send_email("Event Cancelled", f"Your event '{event.name}' was cancelled.", user_email)
+    send_email("Event Deleted", f"{user_email} cancelled the event '{event.name}'", OFFICIAL_EMAIL)
+
     flash(f"❌ Event '{event.name}' cancelled successfully.")
     return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash("👋 You have been logged out.")
+    flash("👋 Logged out successfully.")
     return redirect(url_for('dashboard'))
 
+# ---------------- INIT APP ----------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

@@ -1,42 +1,217 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>Create New Event</h2>
-<form method="post">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Event</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-    <input type="text" name="name" placeholder="Event Name" required><br>
+    <style>
+        :root {
+            --bg-light: #f8f9fd;
+            --bg-dark: #1d1f2f;
+            --primary: #6c63ff;
+            --secondary: #4a90e2;
+            --text-light: #333;
+            --text-dark: #f5f5f5;
+        }
 
-<input type="date" name="date" id="event-date" placeholder="Select a date" required>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
 
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background 0.4s, color 0.4s;
+        }
 
-<br>
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
 
-    
-     <input type="time" name="time" min="09:00" max="00:00" required />
-        <label for="location">Location (District)</label>
-<select name="location" required>
-    <option value="">Select District</option>
-    <option value="Chennai">Chennai</option>
-    <option value="Coimbatore">Coimbatore</option>
-    <option value="Madurai">Madurai</option>
-    <option value="Tiruchirappalli">Tiruchirappalli</option>
-    <option value="Salem">Salem</option>
-    <option value="Tirunelveli">Tirunelveli</option>
-    <option value="Erode">Erode</option>
-    <option value="Vellore">Vellore</option>
-    <option value="Thanjavur">Thanjavur</option>
-    <option value="Thoothukudi">Thoothukudi</option>
-    <option value="Thiruvannamalai">Thiruvannamalai</option>
-    <!-- You can add more districts as needed -->
-   </select><br>
+        .container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            max-width: 650px;
+            width: 95%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
 
-        <input type="text" name="type" placeholder="e.g. Cultural Festival" required>
+        body.dark-mode .container {
+            background: #2a2b3c;
+        }
 
- 
-        <input type="text" name="contact" placeholder="Phone / Email / Website" required>
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 25px;
+        }
 
+        body.dark-mode h2 {
+            color: var(--secondary);
+        }
 
-    <textarea name="description" placeholder="Event Description" required></textarea><br>
-    <button type="submit">Create Event</button>
-</form>
-{% endblock %}
+        form input,
+        form select,
+        form textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
 
+        form input:focus,
+        form select:focus,
+        form textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px rgba(108, 99, 255, 0.3);
+        }
+
+        body.dark-mode form input,
+        body.dark-mode form select,
+        body.dark-mode form textarea {
+            background-color: #444455;
+            color: #fff;
+            border-color: #555;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .time-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .time-group input {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--secondary);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #3a6db5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .time-group {
+                flex-direction: column;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            button {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-btn" onclick="toggleDarkMode()">Toggle Mode</button>
+
+    <div class="container">
+        <h2>Create New Event</h2>
+        <form method="post">
+            <input type="text" name="name" placeholder="Event Name" required>
+
+            <input type="date" name="date" placeholder="Select a date" required>
+
+            <div class="time-group">
+                <input type="time" name="start_time" placeholder="Start Time" required>
+                <input type="time" name="end_time" placeholder="End Time" required>
+            </div>
+
+            <label for="location">Location (District)</label>
+            <select name="location" required>
+                <option value="">Select District</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Tiruchirappalli">Tiruchirappalli</option>
+                <option value="Salem">Salem</option>
+                <option value="Tirunelveli">Tirunelveli</option>
+                <option value="Erode">Erode</option>
+                <option value="Vellore">Vellore</option>
+                <option value="Thanjavur">Thanjavur</option>
+                <option value="Thoothukudi">Thoothukudi</option>
+                <option value="Thiruvannamalai">Thiruvannamalai</option>
+            </select>
+
+            <input type="text" name="type" placeholder="e.g. Cultural Festival" required>
+
+            <input type="text" name="contact" placeholder="Phone / Email / Website" required>
+
+            <textarea name="description" placeholder="Event Description" rows="4" required></textarea>
+
+            <button type="submit">Create Event</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+    </script>
+</body>
+</html>

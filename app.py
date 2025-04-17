@@ -47,7 +47,7 @@ def send_email(subject, content, recipient):
 # ---------------- ROUTES ----------------
 @app.route('/')
 def dashboard():
-    events = Event.query.all()  # 🔧 Fetch all events
+    events = Event.query.all()
     return render_template('dashboard.html', events=events)
 
 @app.route('/home')
@@ -63,7 +63,7 @@ def about():
 def start_create_event():
     if 'user_id' not in session:
         session['next'] = 'create_event'
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('register'))
     return redirect(url_for('create_event'))
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -128,7 +128,7 @@ def create_event():
         send_email("New Event Added", f"User {user_email} created event '{name}'", OFFICIAL_EMAIL)
 
         flash(f"🎉 You registered the event: {name}")
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))  # ✅ Redirect to dashboard
 
     return render_template("create_event.html")
 
@@ -147,7 +147,7 @@ def cancel_event(event_id):
     send_email("Event Deleted", f"{user_email} cancelled the event '{event.name}'", OFFICIAL_EMAIL)
 
     flash(f"❌ Event '{event.name}' cancelled successfully.")
-    return redirect(url_for('home'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():

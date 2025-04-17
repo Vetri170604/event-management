@@ -180,5 +180,13 @@
             document.body.classList.toggle("dark-mode");
         }
     </script>
+    {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div style="color: green; margin: 10px 0;">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 </body>
 </html>

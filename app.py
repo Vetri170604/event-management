@@ -44,7 +44,6 @@ def send_email(subject, content, recipient):
         print("Email sending failed:", e)
 
 # ---------------- ROUTES ----------------
-
 @app.route('/')
 def dashboard():
     return render_template('dashboard.html')
@@ -60,7 +59,6 @@ def about():
 
 @app.route('/start-create-event')
 def start_create_event():
-    # Always start from registration if not logged in
     if 'user_id' not in session:
         session['next'] = 'create_event'
         return redirect(url_for('register'))
@@ -84,7 +82,7 @@ def register():
         send_email("New User Registered", f"{email} just registered!", OFFICIAL_EMAIL)
 
         flash("✅ Registered successfully. Please login now.")
-        return redirect(url_for('login'))
+        return redirect(url_for('register'))
 
     return render_template("register.html")
 
@@ -100,8 +98,7 @@ def login():
             session['user_email'] = user.email
             flash("✅ Logged in successfully!")
 
-            next_page = session.pop('next', 'home')
-            return redirect(url_for(next_page))
+            return redirect(url_for('create_event'))
 
         else:
             flash("❌ Invalid login. Please try again.")
@@ -128,7 +125,7 @@ def create_event():
         send_email("Event Created", f"Your event '{name}' has been created.", user_email)
         send_email("New Event Added", f"User {user_email} created event '{name}'", OFFICIAL_EMAIL)
 
-        flash(f"🎉 Successfully registered your event: {name}")
+        flash(f"🎉 You registered the event: {name}")
         return redirect(url_for('home'))
 
     return render_template("create_event.html")

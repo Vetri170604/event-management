@@ -47,7 +47,8 @@ def send_email(subject, content, recipient):
 # ---------------- ROUTES ----------------
 @app.route('/')
 def dashboard():
-    return render_template('dashboard.html')
+    events = Event.query.all()  # 🔧 Fetch all events
+    return render_template('dashboard.html', events=events)
 
 @app.route('/home')
 def home():

@@ -3,24 +3,35 @@ from flask_sqlalchemy import SQLAlchemy
 import smtplib
 from email.message import EmailMessage
 import os
+from flask_dance.contrib.google import make_google_blueprint, google
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")  # Better for deployment
+app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")
 
 # SQLite DB setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Email Setup
+# ---------------- GOOGLE OAUTH CONFIG ----------------
+app.config["OAUTHLIB_INSECURE_TRANSPORT"] = True  # Only for development (not for production)
+google_bp = make_google_blueprint(
+    client_id="YOUR_GOOGLE_CLIENT_ID",
+    client_secret="YOUR_GOOGLE_CLIENT_SECRET",
+    scope=["profile", "email"],
+    redirect_to="google_login"
+)
+app.register_blueprint(google_bp, url_prefix="/login")
+
+# ---------------- EMAIL SETUP ----------------
 OFFICIAL_EMAIL = "vetrikumar6380268095@gmail.com"
 OFFICIAL_PASSWORD = "gbbzzxlspddzqyya"
 
-# ----------------- MODELS -----------------
+# ---------------- MODELS ----------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=True)
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,7 +40,7 @@ class Event(db.Model):
     location = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
-# ---------------- EMAIL FUNCTIONS ----------------
+# ---------------- EMAIL FUNCTION ----------------
 def send_email(subject, content, recipient):
     try:
         msg = EmailMessage()
@@ -99,13 +110,35 @@ def login():
             session['user_id'] = user.id
             session['user_email'] = user.email
             flash("✅ Logged in successfully!")
-
             return redirect(url_for('create_event'))
-
         else:
             flash("❌ Invalid login. Please try again.")
-
     return render_template("login.html")
+
+@app.route('/login/google')
+def google_login():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+
+    resp = google.get("/oauth2/v2/userinfo")
+    if not resp.ok:
+        flash("Failed to fetch user info from Google.")
+        return redirect(url_for("register"))
+
+    email = resp.json()["email"]
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        new_user = User(email=email, password=None)
+        db.session.add(new_user)
+        db.session.commit()
+        send_email("Registered with Google", f"You successfully registered with Google: {email}", email)
+
+    session['user_email'] = email
+    session['user_id'] = User.query.filter_by(email=email).first().id
+
+    flash("✅ Logged in with Google!")
+    return redirect(url_for('create_event'))
 
 @app.route('/create-event', methods=['GET', 'POST'])
 def create_event():
@@ -128,7 +161,7 @@ def create_event():
         send_email("New Event Added", f"User {user_email} created event '{name}'", OFFICIAL_EMAIL)
 
         flash(f"🎉 You registered the event: {name}")
-        return redirect(url_for('dashboard'))  # ✅ Redirect to dashboard
+        return redirect(url_for('home'))
 
     return render_template("create_event.html")
 
@@ -147,7 +180,7 @@ def cancel_event(event_id):
     send_email("Event Deleted", f"{user_email} cancelled the event '{event.name}'", OFFICIAL_EMAIL)
 
     flash(f"❌ Event '{event.name}' cancelled successfully.")
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():

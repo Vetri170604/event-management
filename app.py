@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 import smtplib
 from email.message import EmailMessage
+import os
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")  # Better for deployment
 
 # SQLite DB setup
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -82,7 +83,7 @@ def register():
         send_email("New User Registered", f"{email} just registered!", OFFICIAL_EMAIL)
 
         flash("✅ Registered successfully. Please login now.")
-        return redirect(url_for('register'))
+        return redirect(url_for('login'))
 
     return render_template("register.html")
 

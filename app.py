@@ -82,7 +82,7 @@ def register():
         send_email("New User Registered", f"{email} just registered!", OFFICIAL_EMAIL)
 
         flash("✅ Registered successfully. Please login now.")
-        return redirect(url_for('login'))  # 🔁 Only this line changed
+        return redirect(url_for('register'))
 
     return render_template("register.html")
 
@@ -158,4 +158,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-s

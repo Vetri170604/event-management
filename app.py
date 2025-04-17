@@ -63,7 +63,7 @@ def about():
 def start_create_event():
     if 'user_id' not in session:
         session['next'] = 'create_event'
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
     return redirect(url_for('create_event'))
 
 @app.route('/register', methods=['GET', 'POST'])
